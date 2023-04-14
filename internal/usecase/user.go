@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"encoding/json"
+	"github.com/Enthreeka/refactoring/internal/apperror"
 	"github.com/Enthreeka/refactoring/internal/entity"
+	"github.com/Enthreeka/refactoring/internal/usecase/repository"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -14,12 +16,14 @@ import (
 )
 
 type ServiceUser struct {
-	log *logger.Logger
+	log        *logger.Logger
+	repository *repository.User
 }
 
-func NewUser(log *logger.Logger) *ServiceUser {
+func NewUser(log *logger.Logger, repository *repository.User) *ServiceUser {
 	return &ServiceUser{
-		log: log,
+		log:        log,
+		repository: repository,
 	}
 }
 
@@ -54,7 +58,7 @@ func (s *ServiceUser) createUser() {
 	request := CreateUserRequest{}
 
 	if err := render.Bind(r, &request); err != nil {
-		_ = render.Render(w, r, ErrInvalidRequest(err))
+		_ = render.Render(w, r, apperror.Err)
 		return
 	}
 
@@ -78,12 +82,10 @@ func (s *ServiceUser) createUser() {
 	})
 }
 
-func (s *ServiceUser) getUser() {
+func (s *ServiceUser) GetUser() *entity.UserStore {
 	userStore := s.getDataFromFile(store)
 
-	id := chi.URLParam(r, "id")
-
-	render.JSON(w, r, userStore.List[id])
+	return userStore
 }
 
 func (s *ServiceUser) updateUser() {
@@ -92,14 +94,14 @@ func (s *ServiceUser) updateUser() {
 	request := UpdateUserRequest{}
 
 	if err := render.Bind(r, &request); err != nil {
-		_ = render.Render(w, r, ErrInvalidRequest(err))
+		_ = render.Render(w, r, apperror.Err)
 		return
 	}
 
 	id := chi.URLParam(r, "id")
 
 	if _, ok := userStore.List[id]; !ok {
-		_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
+		_ = render.Render(w, r, apperror.ErrorNotFound)
 		return
 	}
 
@@ -119,7 +121,7 @@ func (s *ServiceUser) deleteUser() {
 	id := chi.URLParam(r, "id")
 
 	if _, ok := userStore.List[id]; !ok {
-		_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
+		_ = render.Render(w, r, apperror.ErrorNotFound)
 		return
 	}
 

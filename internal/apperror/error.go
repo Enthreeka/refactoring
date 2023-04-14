@@ -9,12 +9,14 @@ import (
 
 var (
 	UserNotFound = errors.New("user_not_found")
+	err          error
 )
 
 // Status code - TODO
 
 var (
-	ErrInvalidRequest = NewAppError(nil, 400, "Invalid request.", "")
+	ErrorNotFound = newAppError(err, 400, "Invalid request.", "", UserNotFound)
+	Err           = newAppError(err, 400, "Invalid request.", "", err)
 )
 
 type ErrResponse struct {
@@ -23,21 +25,21 @@ type ErrResponse struct {
 
 	StatusText string `json:"status"`
 	AppCode    string `json:"code,omitempty"`
-	ErrorText  string `json:"error,omitempty"`
+	ErrorText  error  `json:"error,omitempty"`
 }
 
-func NewAppError(err error, httpStatusCode int, statusText string, appCode string) *ErrResponse {
+func newAppError(err error, httpStatusCode int, statusText, appCode string, ErrorText error) *ErrResponse {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: httpStatusCode,
 		StatusText:     statusText,
 		AppCode:        appCode,
-		ErrorText:      err.Error(),
+		ErrorText:      ErrorText,
 	}
 }
 
 func (e *ErrResponse) Error() string {
-	return e.ErrorText
+	return e.StatusText
 }
 
 func (e *ErrResponse) UnWrap() error {
