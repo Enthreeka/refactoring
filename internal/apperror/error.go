@@ -15,8 +15,8 @@ var (
 // Status code - TODO
 
 var (
-	ErrorNotFound = newAppError(err, 400, "Invalid request.", "", UserNotFound)
-	Err           = newAppError(err, 400, "Invalid request.", "", err)
+	ErrorNotFound = newError(err, 400, "Invalid request.", "", UserNotFound)
+	Err           = newError(err, 400, "Invalid request.", "", err)
 )
 
 type ErrResponse struct {
@@ -28,7 +28,7 @@ type ErrResponse struct {
 	ErrorText  error  `json:"error,omitempty"`
 }
 
-func newAppError(err error, httpStatusCode int, statusText, appCode string, ErrorText error) *ErrResponse {
+func newError(err error, httpStatusCode int, statusText, appCode string, ErrorText error) *ErrResponse {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: httpStatusCode,

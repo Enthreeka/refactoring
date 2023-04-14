@@ -1,17 +1,12 @@
 package http
 
 import (
-	"encoding/json"
 	"github.com/Enthreeka/refactoring/internal/apperror"
-	"github.com/Enthreeka/refactoring/internal/entity"
 	"github.com/Enthreeka/refactoring/internal/usecase"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"io/fs"
-	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -27,39 +22,28 @@ func NewHandler(service *usecase.ServiceUser, log *logger.Logger) *User {
 	}
 }
 
-const store = `users.json`
+func (u *User) GeneralPage(w http.ResponseWriter, r *http.Request) {
 
-func (u *User) searchUsers(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(time.Now().String()))
+}
+
+func (u *User) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	userStore := u.service.SearchUsers()
 
 	render.JSON(w, r, userStore.List)
 }
 
-func createUser(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(store)
-	s := entity.UserStore{}
-	_ = json.Unmarshal(f, &s)
+func (u *User) CreateUser(w http.ResponseWriter, r *http.Request) {
 
-	request := CreateUserRequest{}
+	request := usecase.CreateUserRequest{}
+
+	id := u.service.CreateUser(request)
 
 	if err := render.Bind(r, &request); err != nil {
 		_ = render.Render(w, r, apperror.Err)
 		return
 	}
-
-	s.Increment++
-	u := entity.User{
-		CreatedAt:   time.Now(),
-		DisplayName: request.DisplayName,
-		Email:       request.DisplayName,
-	}
-
-	id := strconv.Itoa(s.Increment)
-	s.List[id] = u
-
-	b, _ := json.Marshal(&s)
-	_ = ioutil.WriteFile(store, b, fs.ModePerm)
 
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
@@ -67,7 +51,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (u *User) getUser(w http.ResponseWriter, r *http.Request) {
+func (u *User) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userStore := u.service.GetUser()
 
@@ -76,51 +60,37 @@ func (u *User) getUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, userStore.List[id])
 }
 
-func updateUser(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(store)
-	s := enUserStore{}
-	_ = json.Unmarshal(f, &s)
+func (u *User) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
-	request := UpdateUserRequest{}
+	id := chi.URLParam(r, "id")
+
+	request := usecase.UpdateUserRequest{}
+
+	userStore := u.service.UpdateUser(request, id)
 
 	if err := render.Bind(r, &request); err != nil {
 		_ = render.Render(w, r, apperror.Err)
 		return
 	}
 
-	id := chi.URLParam(r, "id")
-
-	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, apperror.Err)
+	if _, ok := userStore.List[id]; !ok {
+		_ = render.Render(w, r, apperror.ErrorNotFound)
 		return
 	}
-
-	u := s.List[id]
-	u.DisplayName = request.DisplayName
-	s.List[id] = u
-
-	b, _ := json.Marshal(&s)
-	_ = ioutil.WriteFile(store, b, fs.ModePerm)
 
 	render.Status(r, http.StatusNoContent)
 }
 
-func deleteUser(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(store)
-	s := UserStore{}
-	_ = json.Unmarshal(f, &s)
+func (u *User) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
+	userStore := u.service.DeleteUser(id)
+
+	if _, ok := userStore.List[id]; !ok {
+		_ = render.Render(w, r, apperror.ErrorNotFound)
 		return
 	}
-
-	delete(s.List, id)
-
-	b, _ := json.Marshal(&s)
-	_ = ioutil.WriteFile(store, b, fs.ModePerm)
 
 	render.Status(r, http.StatusNoContent)
 }
