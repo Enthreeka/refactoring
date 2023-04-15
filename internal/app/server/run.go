@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+	"github.com/Enthreeka/refactoring/internal/config"
 	controller "github.com/Enthreeka/refactoring/internal/contoller/http"
 	"github.com/Enthreeka/refactoring/internal/usecase"
 	"github.com/Enthreeka/refactoring/internal/usecase/repository"
@@ -11,7 +13,7 @@ import (
 	"time"
 )
 
-func Run(log *logger.Logger) {
+func Run(config *config.Config, log *logger.Logger) {
 
 	r := chi.NewRouter()
 
@@ -50,6 +52,11 @@ func Run(log *logger.Logger) {
 		})
 	})
 
-	http.ListenAndServe(":3333", r)
+	log.Info("%s:%s Starting http server", config.Server.TypeServer, config.Server.Port)
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", config.Server.Port), r); err != nil {
+		log.Fatal("Server listening failed:%s", err)
+
+	}
 
 }

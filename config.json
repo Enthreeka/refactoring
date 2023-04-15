@@ -1,0 +1,9 @@
+{
+  "server": {
+    "typeserver": "port",
+    "port": "3333"
+  },
+  "db":{
+    "url":""
+  }
+}
