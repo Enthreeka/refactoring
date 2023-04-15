@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/Enthreeka/refactoring/internal/app/dto"
 	"github.com/Enthreeka/refactoring/internal/apperror"
 	"github.com/Enthreeka/refactoring/internal/usecase"
 	"github.com/Enthreeka/refactoring/pkg/logger"
@@ -36,7 +37,7 @@ func (u *User) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 func (u *User) CreateUser(w http.ResponseWriter, r *http.Request) {
 
-	request := usecase.CreateUserRequest{}
+	request := dto.CreateUserRequest{}
 
 	id := u.service.CreateUser(request)
 
@@ -64,7 +65,7 @@ func (u *User) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	request := usecase.UpdateUserRequest{}
+	request := dto.UpdateUserRequest{}
 
 	userStore := u.service.UpdateUser(request, id)
 

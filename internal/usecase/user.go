@@ -2,12 +2,12 @@ package usecase
 
 import (
 	"encoding/json"
+	"github.com/Enthreeka/refactoring/internal/app/dto"
 	"github.com/Enthreeka/refactoring/internal/entity"
 	"github.com/Enthreeka/refactoring/internal/usecase/repository"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 	"io/fs"
 	"io/ioutil"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -26,18 +26,6 @@ func NewUser(repository *repository.User, log *logger.Logger) *ServiceUser {
 
 const store = `users.json`
 
-type CreateUserRequest struct {
-	DisplayName string `json:"display_name"`
-	Email       string `json:"email"`
-}
-
-type UpdateUserRequest struct {
-	DisplayName string `json:"display_name"`
-}
-
-func (c *CreateUserRequest) Bind(r *http.Request) error { return nil }
-func (c *UpdateUserRequest) Bind(r *http.Request) error { return nil }
-
 func (s *ServiceUser) SearchUsers() *entity.UserStore {
 	s.log.Info("Start of users searching")
 
@@ -51,12 +39,12 @@ func (s *ServiceUser) SearchUsers() *entity.UserStore {
 	return userStore
 }
 
-func (s *ServiceUser) CreateUser(request CreateUserRequest) string {
+func (s *ServiceUser) CreateUser(request dto.CreateUserRequest) string {
 	s.log.Info("Start of user creation")
 
 	userStore, err := s.getDataFromFile(store)
 	if err != nil {
-		s.log.Info("%s", err, ":Error to get data from file in CreateUser")
+		s.log.Info("Error to get data from file in CreateUser: %s", err)
 		return ""
 	}
 
@@ -73,12 +61,12 @@ func (s *ServiceUser) CreateUser(request CreateUserRequest) string {
 
 	b, err := json.Marshal(&userStore)
 	if err != nil {
-		s.log.Error("%s", err, ":Error in usecase with unmarshal struct")
+		s.log.Error("Error in usecase with unmarshal struct: %s", err)
 		return ""
 	}
 	err = ioutil.WriteFile(store, b, fs.ModePerm)
 	if err != nil {
-		s.log.Error("%s", err, ":Error in usecase with write in file")
+		s.log.Error("Error in usecase with write in file: %s", err)
 		return ""
 	}
 
@@ -91,7 +79,7 @@ func (s *ServiceUser) GetUser() *entity.UserStore {
 
 	userStore, err := s.getDataFromFile(store)
 	if err != nil {
-		s.log.Info("%s", err, ":Error to get data from file in GetUser")
+		s.log.Info("Error to get data from file in GetUser: %s", err)
 		return nil
 	}
 
@@ -99,12 +87,12 @@ func (s *ServiceUser) GetUser() *entity.UserStore {
 	return userStore
 }
 
-func (s *ServiceUser) UpdateUser(request UpdateUserRequest, id string) *entity.UserStore {
+func (s *ServiceUser) UpdateUser(request dto.UpdateUserRequest, id string) *entity.UserStore {
 	s.log.Info("Start of user updating")
 
 	userStore, err := s.getDataFromFile(store)
 	if err != nil {
-		s.log.Info("%s", err, ":Error to get data from file in UpdateUser")
+		s.log.Info("Error to get data from file in UpdateUser: %s", err)
 		return nil
 	}
 
@@ -115,7 +103,7 @@ func (s *ServiceUser) UpdateUser(request UpdateUserRequest, id string) *entity.U
 	b, _ := json.Marshal(&userStore)
 	err = ioutil.WriteFile(store, b, fs.ModePerm)
 	if err != nil {
-		s.log.Error("%s", err, ":Error in usecase with write in file")
+		s.log.Error("Error in usecase with write in file: %s", err)
 		return nil
 	}
 
@@ -128,7 +116,7 @@ func (s *ServiceUser) DeleteUser(id string) *entity.UserStore {
 
 	userStore, err := s.getDataFromFile(store)
 	if err != nil {
-		s.log.Info("%s", err, ":Error to get data from file in DeleteUser")
+		s.log.Info("Error to get data from file in DeleteUser: %s", err)
 		return nil
 	}
 
@@ -137,7 +125,7 @@ func (s *ServiceUser) DeleteUser(id string) *entity.UserStore {
 	b, _ := json.Marshal(&userStore)
 	err = ioutil.WriteFile(store, b, fs.ModePerm)
 	if err != nil {
-		s.log.Error("%s", err, ":Error in usecase with write in file")
+		s.log.Error("Error in usecase with write in file: %s", err)
 		return nil
 	}
 
@@ -151,7 +139,7 @@ func (s *ServiceUser) getDataFromFile(store string) (*entity.UserStore, error) {
 
 	err := json.Unmarshal(file, &userStore)
 	if err != nil {
-		s.log.Error("%s", err, ":Error in usecase with unmarshal struct")
+		s.log.Error("Error in usecase with unmarshal struct: %s", err)
 		return nil, err
 	}
 
