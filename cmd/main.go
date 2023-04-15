@@ -10,7 +10,7 @@ func main() {
 
 	log := logger.New()
 
-	configPath := "config.json"
+	configPath := "configs/config.json"
 
 	config, err := config.New(configPath)
 	if err != nil {

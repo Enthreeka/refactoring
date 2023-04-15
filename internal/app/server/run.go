@@ -29,10 +29,6 @@ func Run(config *config.Config, log *logger.Logger) {
 
 	userHandler := controller.NewHandler(userServiсe, log)
 
-	//r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Write([]byte(time.Now().String()))
-	//})
-
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", userHandler.GeneralPage)
 	})
