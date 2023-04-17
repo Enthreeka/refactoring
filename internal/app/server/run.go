@@ -2,26 +2,22 @@ package server
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/Enthreeka/refactoring/internal/apperror"
 	"github.com/Enthreeka/refactoring/internal/config"
-	controller "github.com/Enthreeka/refactoring/internal/contoller/http"
-	"github.com/Enthreeka/refactoring/internal/usecase"
-	"github.com/Enthreeka/refactoring/internal/usecase/repository"
+	controller "github.com/Enthreeka/refactoring/internal/user/contoller/http"
+	"github.com/Enthreeka/refactoring/internal/user/usecase"
+	"github.com/Enthreeka/refactoring/internal/user/usecase/repository"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
-	"time"
 )
 
 func Run(config *config.Config, log *logger.Logger) {
 
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	//r.Use(apperror.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
+	apperror.Middleware(r)
 
 	userRepository := repository.NewUser()
 
@@ -36,23 +32,22 @@ func Run(config *config.Config, log *logger.Logger) {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Get("/", userHandler.SearchUsers)
-				r.Post("/", userHandler.CreateUser)
+				r.Get("/", userHandler.SearchUsersHandler)
+				r.Post("/", userHandler.CreateUserHandler)
 
 				r.Route("/{id}", func(r chi.Router) {
-					r.Get("/", userHandler.GetUser)
-					r.Patch("/", userHandler.UpdateUser)
-					r.Delete("/", userHandler.DeleteUser)
+					r.Get("/", userHandler.GetUserHandler)
+					r.Patch("/", userHandler.UpdateUserHandler)
+					r.Delete("/", userHandler.DeleteUserHandler)
 				})
 			})
 		})
 	})
 
-	log.Info("%s:%s Starting http server", config.Server.TypeServer, config.Server.Port)
+	log.Info("Starting http server: %s:%s", config.Server.TypeServer, config.Server.Port)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", config.Server.Port), r); err != nil {
 		log.Fatal("Server listening failed:%s", err)
-
 	}
 
 }

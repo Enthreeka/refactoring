@@ -1,22 +1,24 @@
 package apperror
 
 import (
-	"encoding/json"
 	"errors"
-	"github.com/go-chi/render"
 	"net/http"
+
+	"github.com/go-chi/render"
 )
 
 var (
-	UserNotFound = errors.New("user_not_found")
-	err          error
+	ErrNewUser           = errors.New("user_not_found")
+	ErrServer            = errors.New("problems_with_server")
+	ErrUserAlreadyExists = errors.New("user_already_exists")
 )
 
-// Status code - TODO
+// Нужно доабвить appcode, которые будут обозначать какую-то ошибку
 
 var (
-	ErrorNotFound = newError(err, 400, "Invalid request.", "", UserNotFound)
-	Err           = newError(err, 400, "Invalid request.", "", err)
+	ErrorUserNotFound   = NewError(ErrNewUser, 404, "Invalid request.", "US-0001")
+	ErrorInternalServer = NewError(ErrServer, 500, "Internal problems.", "SV-0001")
+	ErrorUserExist      = NewError(ErrUserAlreadyExists, 409, "Email exist in storage.", "US-0002")
 )
 
 type ErrResponse struct {
@@ -25,16 +27,14 @@ type ErrResponse struct {
 
 	StatusText string `json:"status"`
 	AppCode    string `json:"code,omitempty"`
-	ErrorText  error  `json:"error,omitempty"`
 }
 
-func newError(err error, httpStatusCode int, statusText, appCode string, ErrorText error) *ErrResponse {
+func NewError(err error, httpStatusCode int, statusText, appCode string) *ErrResponse {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: httpStatusCode,
 		StatusText:     statusText,
 		AppCode:        appCode,
-		ErrorText:      ErrorText,
 	}
 }
 
@@ -42,28 +42,7 @@ func (e *ErrResponse) Error() string {
 	return e.StatusText
 }
 
-func (e *ErrResponse) UnWrap() error {
-	return e.Err
-}
-
-func (e *ErrResponse) Marshal() []byte {
-	marshal, err := json.Marshal(e)
-	if err != nil {
-		return nil
-	}
-	return marshal
-}
-
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	render.Status(r, e.HTTPStatusCode)
 	return nil
 }
-
-//func ErrInvalidRequest(err error) render.Renderer {
-//	return &ErrResponse{
-//		Err:            err,
-//		HTTPStatusCode: 400,
-//		StatusText:     "Invalid request.",
-//		ErrorText:      err.Error(),
-//	}
-//}
