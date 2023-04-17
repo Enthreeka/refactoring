@@ -7,8 +7,8 @@ import (
 
 type Service interface {
 	SearchUsers() *entity.UserStore
-	CreateUser(request dto.CreateUserRequest) string
+	CreateUser(request dto.CreateUserRequest) (string, *entity.User, error)
 	GetUser() *entity.UserStore
-	UpdateUser(request dto.UpdateUserRequest, id string) *entity.UserStore
-	DeleteUser(id string) *entity.UserStore
+	UpdateUser(request dto.UpdateUserRequest, id string) (*entity.UserStore, error)
+	DeleteUser(id string) error
 }

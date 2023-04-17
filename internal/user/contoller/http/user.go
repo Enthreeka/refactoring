@@ -7,18 +7,18 @@ import (
 
 	"github.com/Enthreeka/refactoring/internal/app/dto"
 	"github.com/Enthreeka/refactoring/internal/apperror"
-	"github.com/Enthreeka/refactoring/internal/user/usecase"
+	"github.com/Enthreeka/refactoring/internal/user"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
 type User struct {
-	service *usecase.ServiceUser
+	service user.Service
 	log     *logger.Logger
 }
 
-func NewHandler(service *usecase.ServiceUser, log *logger.Logger) *User {
+func NewHandler(service user.Service, log *logger.Logger) *User {
 	return &User{
 		service: service,
 		log:     log,
@@ -86,6 +86,7 @@ func (u *User) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	render.Status(r, http.StatusOK)
 	render.JSON(w, r, userStore.List[id])
 
 }
@@ -105,21 +106,12 @@ func (u *User) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == apperror.ErrorUserNotFound {
-			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, apperror.ErrorUserNotFound)
+			_ = render.Render(w, r, apperror.ErrorUserNotFound)
+			return
 		}
+		_ = render.Render(w, r, apperror.ErrorInternalServer)
 		return
 	}
-
-	if _, ok := userStore.List[id]; !ok {
-		_ = render.Render(w, r, apperror.ErrorUserNotFound)
-		return
-	}
-
-	// if err := render.Bind(r, &request); err != nil {
-	// 	_ = render.Render(w, r, apperror.Err)
-	// 	return
-	// }
 
 	render.JSON(w, r, userStore.List[id])
 	render.Status(r, http.StatusNoContent)

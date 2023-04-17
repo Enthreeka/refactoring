@@ -1,4 +1,4 @@
 package user
 
-type Storage interface {
+type Repository interface {
 }

@@ -1,9 +1,11 @@
 package repository
 
+import "github.com/Enthreeka/refactoring/internal/user"
+
 type User struct {
 	//.. pool db
 }
 
-func NewUser() *User {
+func NewUser() user.Repository {
 	return &User{}
 }

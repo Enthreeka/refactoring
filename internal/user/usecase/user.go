@@ -10,16 +10,16 @@ import (
 	"github.com/Enthreeka/refactoring/internal/app/dto"
 	"github.com/Enthreeka/refactoring/internal/apperror"
 	"github.com/Enthreeka/refactoring/internal/entity"
-	"github.com/Enthreeka/refactoring/internal/user/usecase/repository"
+	"github.com/Enthreeka/refactoring/internal/user"
 	"github.com/Enthreeka/refactoring/pkg/logger"
 )
 
 type ServiceUser struct {
-	repository *repository.User
+	repository user.Repository
 	log        *logger.Logger
 }
 
-func NewUser(repository *repository.User, log *logger.Logger) *ServiceUser {
+func NewUser(repository user.Repository, log *logger.Logger) user.Service {
 	return &ServiceUser{
 		repository: repository,
 		log:        log,
